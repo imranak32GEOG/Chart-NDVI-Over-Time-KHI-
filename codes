@@ -1,0 +1,105 @@
+
+// List of the steps
+//     Import Landsat 8 TOA collection.
+//     Filter the data for the period 2013–2022.
+//     Calculate NDVI using near-infrared (B5) and red (B4) bands.
+//     Create a greenest pixel mosaic based on NDVI values.
+//     Visualize median RGB and greenest pixel images.
+//     Visualize NDVI with a color scale (0.02 to 0.4).
+//     Add a legend to represent NDVI levels.
+
+// study area is Karachi from import from GEE assets, 
+//Random points generated too to extract NDVI values
+
+
+
+
+var L8 = ee.ImageCollection("LANDSAT/LC08/C02/T1_TOA");
+
+var rgb_vis = {min:0, max:0.3, bands:['B4','B3','B2']};
+function addNDVI(image) {
+  var ndvi = image.normalizedDifference(['B5', 'B4']);
+  return image.addBands(ndvi); 
+} 
+var filtered = L8.filterDate('2013-01-01', '2022-12-31');
+var with_ndvi = filtered.map(addNDVI);
+var greenest = with_ndvi.qualityMosaic('nd');
+Map.addLayer(filtered.median().clip(KHI), rgb_vis, 'RGB (median)');
+Map.addLayer(greenest.clip(KHI), rgb_vis, 'RGB (greenest pixel)');
+print(Chart.image.series(with_ndvi.select('nd'), roi));
+Map.centerObject(KHI);
+ // Add NDVI layer with custom visualization parameters
+var ndvi_vis = {min: 0.02, max: 0.4, palette: ['blue', 'white', 'green', 'yellow','purple' ,'red']};
+Map.addLayer(with_ndvi.select('nd').median().clip(KHI), ndvi_vis, 'NDVI');
+print(greenest )
+
+
+
+
+/////////////Legend///////////////
+
+ var viz = {
+  min: 0.0,
+  max: 0.4, 
+  palette: [
+   'blue', 'white', 'green', 'yellow','purple' ,'red','red',' red'  ],
+};
+
+// set position of panel
+var legend = ui.Panel({
+  style: {
+    position: 'bottom-left',
+    padding: '6px 10px'
+  }
+});
+ 
+ 
+// Create legend title
+var legendTitle = ui.Label({
+  // value: 'NDVI +1 to -1', 
+  value: 'NDVI in KHI',
+  style: {
+    fontWeight: 'bold',
+    fontSize: '18px',
+    margin: '0 0 4px 0',
+    padding: '0'
+    }
+});
+
+ // Add the title to the panel
+legend.add(legendTitle); 
+
+// create the legend image
+var lon = ee.Image.pixelLonLat().select('latitude');
+var gradient = lon.multiply((viz.max-viz.min)/200.0).add(viz.min);
+var legendImage = gradient.visualize(viz);
+
+// create text on top of legend
+var panel = ui.Panel({
+    widgets: [
+      ui.Label('NDVI High 0.4')
+    ],
+  });
+
+legend.add(panel);
+  
+// create thumbnail from the image
+var thumbnail = ui.Thumbnail({
+  image: legendImage, 
+  params: {bbox:'0,0,10,100', dimensions:'10x200'},  
+  style: {padding: '1px', position: 'bottom-center'}
+});
+
+// add the thumbnail to the legend
+legend.add(thumbnail);
+
+// create text on top of legend
+var panel = ui.Panel({
+    widgets: [
+      ui.Label('NDVI Low 0.02')
+    ],
+  });
+
+legend.add(panel);
+
+Map.add(legend);
