@@ -1,5 +1,5 @@
 
-// List of the steps
+//  Steps
 //     Import Landsat 8 TOA collection.
 //     Filter the data for the period 2013–2022.
 //     Calculate NDVI using near-infrared (B5) and red (B4) bands.
@@ -8,7 +8,7 @@
 //     Visualize NDVI with a color scale (0.02 to 0.4).
 //     Add a legend to represent NDVI levels.
 
-// study area is Karachi from import from GEE assets, 
+// study area is Karachi import from GEE assets, 
 //Random points generated too to extract NDVI values
 
 
